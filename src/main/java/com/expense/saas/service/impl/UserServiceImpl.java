@@ -26,7 +26,7 @@ public class UserServiceImpl implements UserService {
     public UserResponse create(UserCreateRequest request) {
         var normalizedEmail = request.email().strip().toLowerCase(Locale.ROOT);
         if (this.userRepository.existsByEmailIgnoreCase(normalizedEmail)) {
-            throw new BusinessException("Email already registered.");
+            throw new BusinessException("E-mail já cadastrado.");
         }
 
         var user = User.builder()

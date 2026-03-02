@@ -37,7 +37,7 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponse signup(SignupRequest request) {
         var normalizedEmail = request.email().strip().toLowerCase(Locale.ROOT);
         if (this.userRepository.existsByEmailIgnoreCase(normalizedEmail)) {
-            throw new BusinessException("Email already registered.");
+            throw new BusinessException("E-mail já cadastrado.");
         }
 
         var user = User.builder()
@@ -62,9 +62,9 @@ public class AuthServiceImpl implements AuthService {
             var principal = (AppUserPrincipal) authentication.getPrincipal();
             return this.buildAuthResponse(principal.getUserId(), principal.getRole(), principal.getUsername());
         } catch (BadCredentialsException ex) {
-            throw new UnauthorizedException("Invalid credentials.");
+            throw new UnauthorizedException("Credenciais inválidas.");
         } catch (AuthenticationException ex) {
-            throw new UnauthorizedException("Authentication failed.");
+            throw new UnauthorizedException("Falha na autenticação.");
         }
     }
 

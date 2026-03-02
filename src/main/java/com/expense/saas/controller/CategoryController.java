@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/categories")
@@ -26,5 +27,11 @@ public class CategoryController {
     @GetMapping
     public ResponseEntity<List<CategoryResponse>> list() {
         return ResponseEntity.ok(this.categoryService.list());
+    }
+
+    @PatchMapping("/{categoryId}/deactivate")
+    public ResponseEntity<Void> deactivate(@PathVariable UUID categoryId) {
+        this.categoryService.deactivate(categoryId);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @AllArgsConstructor
@@ -29,15 +30,16 @@ public class CategoryServiceImpl implements CategoryService {
         var userId = this.authenticatedUserService.requireUserId();
         var categoryName = request.name().strip();
         if (this.categoryRepository.existsByNameIgnoreCaseAndTypeAndCreatedBy_Id(categoryName, request.type(), userId)) {
-            throw new BusinessException("A category with the same name and type already exists.");
+            throw new BusinessException("Já existe uma categoria com o mesmo nome e tipo.");
         }
 
         var currentUser = this.userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Authenticated user not found."));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário autenticado não encontrado."));
 
         var category = Category.builder()
                 .name(categoryName)
                 .type(request.type())
+                .active(true)
                 .createdBy(currentUser)
                 .build();
 
@@ -49,9 +51,24 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional(readOnly = true)
     public List<CategoryResponse> list() {
         var userId = this.authenticatedUserService.requireUserId();
-        return this.categoryRepository.findAllByCreatedBy_IdOrderByCreatedAtDesc(userId)
+        return this.categoryRepository.findAllByCreatedBy_IdAndActiveTrueOrderByCreatedAtDesc(userId)
                 .stream()
                 .map(CategoryResponse::fromEntity)
                 .toList();
+    }
+
+    @Override
+    @Transactional
+    public void deactivate(UUID categoryId) {
+        var userId = this.authenticatedUserService.requireUserId();
+        var category = this.categoryRepository.findByIdAndCreatedBy_Id(categoryId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada."));
+
+        if (!category.isActive()) {
+            return;
+        }
+
+        category.setActive(false);
+        this.categoryRepository.save(category);
     }
 }

@@ -10,18 +10,18 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 public record TransactionCreateRequest(
-        @NotBlank(message = "Description is required")
-        @Size(max = 255, message = "Description must have at most 255 characters")
+        @NotBlank(message = "Descrição é obrigatória")
+        @Size(max = 255, message = "Descrição deve ter no máximo 255 caracteres")
         String description,
 
-        @NotNull(message = "Amount is required")
-        @DecimalMin(value = "0.01", inclusive = true, message = "Amount must be greater than zero")
+        @NotNull(message = "Valor é obrigatório")
+        @DecimalMin(value = "0.01", inclusive = true, message = "Valor deve ser maior que zero")
         BigDecimal amount,
 
-        @NotNull(message = "Date is required")
+        @NotNull(message = "Data é obrigatória")
         LocalDate date,
 
-        @NotNull(message = "Category id is required")
+        @NotNull(message = "ID da categoria é obrigatório")
         UUID categoryId
 ) {
 }

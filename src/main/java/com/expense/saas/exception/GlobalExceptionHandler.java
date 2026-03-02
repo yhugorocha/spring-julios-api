@@ -29,8 +29,8 @@ public class GlobalExceptionHandler {
 
         var response = ApiErrorResponse.of(
                 HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                "Request validation failed.",
+                this.getStatusMessage(HttpStatus.BAD_REQUEST),
+                "Falha na validação da requisição.",
                 request.getRequestURI(),
                 fieldErrors
         );
@@ -49,8 +49,8 @@ public class GlobalExceptionHandler {
 
         var response = ApiErrorResponse.of(
                 HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                "Request validation failed.",
+                this.getStatusMessage(HttpStatus.BAD_REQUEST),
+                "Falha na validação da requisição.",
                 request.getRequestURI(),
                 fieldErrors
         );
@@ -78,6 +78,9 @@ public class GlobalExceptionHandler {
             RuntimeException exception,
             HttpServletRequest request
     ) {
+        if (exception instanceof BadCredentialsException) {
+            return buildError(HttpStatus.UNAUTHORIZED, "Credenciais inválidas.", request.getRequestURI());
+        }
         return buildError(HttpStatus.UNAUTHORIZED, exception.getMessage(), request.getRequestURI());
     }
 
@@ -86,7 +89,7 @@ public class GlobalExceptionHandler {
             AccessDeniedException exception,
             HttpServletRequest request
     ) {
-        return buildError(HttpStatus.FORBIDDEN, "You do not have permission to access this resource.", request.getRequestURI());
+        return buildError(HttpStatus.FORBIDDEN, "Você não tem permissão para acessar este recurso.", request.getRequestURI());
     }
 
     @ExceptionHandler(Exception.class)
@@ -94,18 +97,30 @@ public class GlobalExceptionHandler {
             Exception exception,
             HttpServletRequest request
     ) {
-        return buildError(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected internal error.", request.getRequestURI());
+        return buildError(HttpStatus.INTERNAL_SERVER_ERROR, "Erro interno inesperado.", request.getRequestURI());
     }
 
     private ResponseEntity<ApiErrorResponse> buildError(HttpStatus status, String message, String path) {
         var response = ApiErrorResponse.of(
                 status.value(),
-                status.getReasonPhrase(),
+                this.getStatusMessage(status),
                 message,
                 path,
                 List.of()
         );
         return ResponseEntity.status(status).body(response);
+    }
+
+    private String getStatusMessage(HttpStatus status) {
+        return switch (status) {
+            case BAD_REQUEST -> "Requisição inválida";
+            case UNAUTHORIZED -> "Não autorizado";
+            case FORBIDDEN -> "Acesso negado";
+            case NOT_FOUND -> "Recurso não encontrado";
+            case UNPROCESSABLE_ENTITY -> "Regra de negócio";
+            case INTERNAL_SERVER_ERROR -> "Erro interno do servidor";
+            default -> "Erro";
+        };
     }
 
     private ApiFieldError toApiFieldError(FieldError fieldError) {

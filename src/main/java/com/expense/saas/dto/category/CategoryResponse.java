@@ -10,6 +10,7 @@ public record CategoryResponse(
         UUID id,
         String name,
         CategoryType type,
+        boolean active,
         Instant createdAt
 ) {
 
@@ -18,6 +19,7 @@ public record CategoryResponse(
                 category.getId(),
                 category.getName(),
                 category.getType(),
+                category.isActive(),
                 category.getCreatedAt()
         );
     }

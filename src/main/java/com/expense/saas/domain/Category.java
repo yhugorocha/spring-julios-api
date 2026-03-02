@@ -37,6 +37,10 @@ public class Category extends BaseEntity {
     @Column(name = "type", nullable = false, length = 30)
     private CategoryType type;
 
+    @Builder.Default
+    @Column(name = "active", nullable = false)
+    private boolean active = true;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "created_by", nullable = false, updatable = false)
     private User createdBy;

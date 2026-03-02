@@ -12,12 +12,12 @@ public class AuthenticatedUserService {
     public AuthenticatedUser requireAuthenticatedUser() {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
-            throw new UnauthorizedException("Authentication required.");
+            throw new UnauthorizedException("Autenticação obrigatória.");
         }
 
         var principal = authentication.getPrincipal();
         if (!(principal instanceof AuthenticatedUser authenticatedUser)) {
-            throw new UnauthorizedException("Authentication required.");
+            throw new UnauthorizedException("Autenticação obrigatória.");
         }
         return authenticatedUser;
     }

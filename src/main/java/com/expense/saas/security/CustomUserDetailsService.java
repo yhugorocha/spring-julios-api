@@ -17,6 +17,6 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         return userRepository.findByEmailIgnoreCase(email.strip())
                 .map(AppUserPrincipal::fromEntity)
-                .orElseThrow(() -> new UsernameNotFoundException("Invalid credentials."));
+                .orElseThrow(() -> new UsernameNotFoundException("Credenciais inválidas."));
     }
 }

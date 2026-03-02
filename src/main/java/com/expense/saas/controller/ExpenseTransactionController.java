@@ -1,6 +1,7 @@
 package com.expense.saas.controller;
 
 import com.expense.saas.dto.transaction.TransactionCreateRequest;
+import com.expense.saas.dto.transaction.TransactionAmountUpdateRequest;
 import com.expense.saas.dto.transaction.TransactionResponse;
 import com.expense.saas.service.ExpenseTransactionService;
 import jakarta.validation.Valid;
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/transactions")
@@ -26,5 +28,19 @@ public class ExpenseTransactionController {
     @GetMapping
     public ResponseEntity<List<TransactionResponse>> list() {
         return ResponseEntity.ok(this.expenseTransactionService.list());
+    }
+
+    @PatchMapping("/{transactionId}/amount")
+    public ResponseEntity<TransactionResponse> updateAmount(
+            @PathVariable UUID transactionId,
+            @Valid @RequestBody TransactionAmountUpdateRequest request
+    ) {
+        return ResponseEntity.ok(this.expenseTransactionService.updateAmount(transactionId, request));
+    }
+
+    @DeleteMapping("/{transactionId}")
+    public ResponseEntity<Void> delete(@PathVariable UUID transactionId) {
+        this.expenseTransactionService.delete(transactionId);
+        return ResponseEntity.noContent().build();
     }
 }
