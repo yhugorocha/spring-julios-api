@@ -1,0 +1,7 @@
+# ignora coisas inúteis
+.git
+.idea
+*.iml
+
+# NÃO ignorar target (precisamos do jar)
+# target
