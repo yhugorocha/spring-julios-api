@@ -16,5 +16,5 @@ public interface CategoryRepository extends JpaRepository<Category, UUID> {
 
     Optional<Category> findByIdAndCreatedBy_IdAndActiveTrue(UUID id, UUID createdBy);
 
-    List<Category> findAllByCreatedBy_IdAndActiveTrueOrderByCreatedAtDesc(UUID createdBy);
+    List<Category> findAllByCreatedBy_IdOrderByCreatedAtDesc(UUID createdBy);
 }

@@ -51,7 +51,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional(readOnly = true)
     public List<CategoryResponse> list() {
         var userId = this.authenticatedUserService.requireUserId();
-        return this.categoryRepository.findAllByCreatedBy_IdAndActiveTrueOrderByCreatedAtDesc(userId)
+        return this.categoryRepository.findAllByCreatedBy_IdOrderByCreatedAtDesc(userId)
                 .stream()
                 .map(CategoryResponse::fromEntity)
                 .toList();
@@ -59,16 +59,29 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     @Transactional
-    public void deactivate(UUID categoryId) {
-        var userId = this.authenticatedUserService.requireUserId();
-        var category = this.categoryRepository.findByIdAndCreatedBy_Id(categoryId, userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada."));
+    public void activate(UUID categoryId) {
+        this.updateCategoryStatus(categoryId, true);
+    }
 
-        if (!category.isActive()) {
+    @Override
+    @Transactional
+    public void deactivate(UUID categoryId) {
+        this.updateCategoryStatus(categoryId, false);
+    }
+
+    private void updateCategoryStatus(UUID categoryId, boolean active) {
+        var category = this.findOwnedCategory(categoryId);
+        if (category.isActive() == active) {
             return;
         }
 
-        category.setActive(false);
+        category.setActive(active);
         this.categoryRepository.save(category);
+    }
+
+    private Category findOwnedCategory(UUID categoryId) {
+        var userId = this.authenticatedUserService.requireUserId();
+        return this.categoryRepository.findByIdAndCreatedBy_Id(categoryId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada."));
     }
 }

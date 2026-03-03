@@ -29,6 +29,12 @@ public class CategoryController {
         return ResponseEntity.ok(this.categoryService.list());
     }
 
+    @PatchMapping("/{categoryId}/activate")
+    public ResponseEntity<Void> activate(@PathVariable UUID categoryId) {
+        this.categoryService.activate(categoryId);
+        return ResponseEntity.noContent().build();
+    }
+
     @PatchMapping("/{categoryId}/deactivate")
     public ResponseEntity<Void> deactivate(@PathVariable UUID categoryId) {
         this.categoryService.deactivate(categoryId);

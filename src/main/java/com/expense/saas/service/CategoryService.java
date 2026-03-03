@@ -12,5 +12,7 @@ public interface CategoryService {
 
     List<CategoryResponse> list();
 
+    void activate(UUID categoryId);
+
     void deactivate(UUID categoryId);
 }
