@@ -11,7 +11,7 @@ public interface ExpenseTransactionService {
 
     TransactionResponse create(TransactionCreateRequest request);
 
-    List<TransactionResponse> list();
+    List<TransactionResponse> list(String month);
 
     TransactionResponse updateAmount(UUID transactionId, TransactionAmountUpdateRequest request);
 

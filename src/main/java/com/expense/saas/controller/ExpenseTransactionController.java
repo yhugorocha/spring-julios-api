@@ -26,8 +26,8 @@ public class ExpenseTransactionController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TransactionResponse>> list() {
-        return ResponseEntity.ok(this.expenseTransactionService.list());
+    public ResponseEntity<List<TransactionResponse>> list(@RequestParam(required = false) String month) {
+        return ResponseEntity.ok(this.expenseTransactionService.list(month));
     }
 
     @PatchMapping("/{transactionId}/amount")

@@ -1,120 +1,166 @@
 # Expense API
 
-API REST para controle de despesas e receitas, com autenticação JWT e isolamento de dados por usuário.
+API REST para controle de despesas e receitas, com autenticacao JWT e isolamento de dados por usuario.
 
 ## Funcionalidades
 
-- Cadastro e login de usuários com JWT.
-- Gestão de categorias por usuário.
-- Desativação de categoria (sem exclusão física).
-- Gestão de transações financeiras.
-- Atualização de valor e exclusão de transações.
+- Cadastro e login de usuarios com JWT.
+- Gestao de categorias por usuario (ativacao e desativacao).
+- Gestao de transacoes financeiras.
+- Filtro de transacoes por mes no endpoint de listagem.
+- Atualizacao de valor e exclusao de transacoes.
 - Controle de acesso por perfil (`ADMIN` e `USER`).
-- Migrações de banco com Flyway.
+- Migracoes de banco com Flyway.
+- Observabilidade com Spring Boot Actuator, Micrometer, Prometheus e Grafana.
 
 ## Stack
 
-- Java 21
-- Spring Boot 3.5.11
-- Spring Security + JWT (`jjwt`)
-- Spring Data JPA
-- PostgreSQL
-- Flyway
-- Maven
-- Lombok
+- Java 21.
+- Spring Boot 3.5.11.
+- Spring Security + JWT (`jjwt`).
+- Spring Data JPA.
+- PostgreSQL.
+- Flyway.
+- Spring Boot Actuator.
+- Micrometer + Prometheus Registry.
+- Grafana.
+- Maven.
+- Lombok.
 
-## Pré-requisitos
+## Pre-requisitos
 
-- Java 21+
-- Docker e Docker Compose (opcional, recomendado para banco local)
+- Java 21+.
+- Docker e Docker Compose (recomendado para ambiente local).
 
-## Configuração de ambiente
+## Variaveis de ambiente da aplicacao
 
-A aplicação usa as seguintes variáveis:
-
-- `SPRING_DATASOURCE_URL`
-- `SPRING_DATASOURCE_USERNAME`
-- `SPRING_DATASOURCE_PASSWORD`
-- `JWT_SECRET`
-- `JWT_EXPIRATION_MS`
+- `SPRING_DATASOURCE_URL`.
+- `SPRING_DATASOURCE_USERNAME`.
+- `SPRING_DATASOURCE_PASSWORD`.
+- `JWT_SECRET`.
+- `JWT_EXPIRATION_MS`.
 
 Exemplo (PowerShell):
 
 ```powershell
-$env:SPRING_DATASOURCE_URL="jdbc:postgresql://localhost:5432/expensedb"
-$env:SPRING_DATASOURCE_USERNAME="user_expense"
-$env:SPRING_DATASOURCE_PASSWORD="password_expense"
+$env:SPRING_DATASOURCE_URL="jdbc:postgresql://localhost:5432/expense"
+$env:SPRING_DATASOURCE_USERNAME="expense"
+$env:SPRING_DATASOURCE_PASSWORD="expense"
 $env:JWT_SECRET="sua-chave-secreta-com-pelo-menos-32-caracteres"
 $env:JWT_EXPIRATION_MS="3600000"
 ```
 
-## Banco de dados local com Docker
+## Subindo infraestrutura local com Docker
+
+O `docker-compose.yml` deste projeto sobe:
+
+- PostgreSQL em `localhost:5432`.
+- Prometheus em `localhost:9090`.
+- Grafana em `localhost:3000`.
+
+Comando:
 
 ```powershell
 docker compose up -d
 ```
 
-Isso inicia um PostgreSQL na porta `5432` com:
+Observacao importante:
 
-- banco: `expensedb`
-- usuário: `user_expense`
-- senha: `password_expense`
+- No estado atual, o compose nao sobe a API Spring Boot.
+- O Prometheus esta configurado para coletar metricas da API em `host.docker.internal:8080`.
+- Portanto, rode a API localmente na porta `8080` para que o scrape funcione.
 
-## Como executar
+Arquivos de monitoramento:
+
+- `monitoring/prometheus.yml`.
+- `monitoring/grafana/provisioning/datasources/datasource.yml`.
+
+## Como executar a API
 
 ```powershell
 .\mvnw.cmd spring-boot:run
 ```
 
-Ou gerar build:
+Build:
 
 ```powershell
 .\mvnw.cmd clean package
 ```
 
-## Autenticação
+## Autenticacao e autorizacao
 
-- Endpoints públicos: `/api/auth/**`
-- Endpoints de usuário (admin): `/api/users/**`
-- Demais endpoints exigem `Authorization: Bearer <token>`
+- Endpoints publicos: `/api/auth/**`.
+- Endpoints de usuario (admin): `/api/users/**`.
+- Demais endpoints exigem `Authorization: Bearer <token>`.
+- Endpoints de actuator estao liberados em `/actuator/**`.
 
 ## Endpoints principais
 
 ### Auth
 
-- `POST /api/auth/signup`
-- `POST /api/auth/login`
+- `POST /api/auth/signup`.
+- `POST /api/auth/login`.
 
-### Usuários (somente ADMIN)
+### Usuarios (somente ADMIN)
 
-- `POST /api/users`
-- `GET /api/users`
+- `POST /api/users`.
+- `GET /api/users`.
 
-### Categorias (usuário autenticado)
+### Categorias (usuario autenticado)
 
-- `POST /api/categories`
-- `GET /api/categories` (retorna categorias ativas do usuário autenticado)
-- `PATCH /api/categories/{categoryId}/deactivate`
+- `POST /api/categories`.
+- `GET /api/categories`.
+- `PATCH /api/categories/{categoryId}/activate`.
+- `PATCH /api/categories/{categoryId}/deactivate`.
 
-### Transações (usuário autenticado)
+### Transacoes (usuario autenticado)
 
-- `POST /api/transactions`
-- `GET /api/transactions`
-- `PATCH /api/transactions/{transactionId}/amount`
-- `DELETE /api/transactions/{transactionId}`
+- `POST /api/transactions`.
+- `GET /api/transactions`.
+- `GET /api/transactions?month=yyyy-MM`.
+- `PATCH /api/transactions/{transactionId}/amount`.
+- `DELETE /api/transactions/{transactionId}`.
 
-## Regras de negócio importantes
+Filtro mensal de transacoes:
 
-- Cada usuário acessa apenas os próprios dados.
-- Categoria não é excluída: apenas desativada.
-- Apenas o dono da categoria pode desativá-la.
-- Apenas o dono da transação pode atualizar/excluir.
-- Não é permitido criar transação com categoria inativa.
+- Query param: `month` (opcional), formato `yyyy-MM`.
+- Sem `month`, o backend usa o mes atual automaticamente.
+- Exemplos:
+  - `GET /api/transactions?month=2026-03`.
+  - `GET /api/transactions?month=2026-02`.
+
+### Observabilidade
+
+- `GET /actuator/health`.
+- `GET /actuator/info`.
+- `GET /actuator/metrics`.
+- `GET /actuator/prometheus`.
+
+## Grafana
+
+Acesso local:
+
+- URL: `http://localhost:3000`.
+- Usuario padrao: `admin`.
+- Senha padrao: `admin`.
+
+Credenciais podem ser sobrescritas por variaveis no compose:
+
+- `GRAFANA_ADMIN_USER`.
+- `GRAFANA_ADMIN_PASSWORD`.
+
+## Regras de negocio importantes
+
+- Cada usuario acessa apenas os proprios dados.
+- Categoria nao e excluida fisicamente: apenas ativada/desativada.
+- Apenas o dono da categoria pode ativar/desativar.
+- Apenas o dono da transacao pode atualizar/excluir.
+- Nao e permitido criar transacao com categoria inativa.
 
 ## Tipos e enums
 
-- `CategoryType`: `INCOME`, `EXPENSE`
-- `UserRole`: `ADMIN`, `USER`
+- `CategoryType`: `INCOME`, `EXPENSE`.
+- `UserRole`: `ADMIN`, `USER`.
 
 ## Formato de erro da API
 
@@ -124,8 +170,8 @@ As respostas de erro seguem o modelo:
 {
   "timestamp": "2026-03-02T18:30:00Z",
   "status": 400,
-  "error": "Requisição inválida",
-  "message": "Falha na validação da requisição.",
+  "error": "Requisicao invalida",
+  "message": "Falha na validacao da requisicao.",
   "path": "/api/transactions",
   "fieldErrors": [
     {
@@ -136,10 +182,9 @@ As respostas de erro seguem o modelo:
 }
 ```
 
-## Migrações
+## Migracoes
 
-As migrações ficam em `src/main/resources/db/migration`:
+As migracoes ficam em `src/main/resources/db/migration`:
 
-- `V1__create_single_tenant_schema.sql`
-- `V2__add_active_to_category.sql`
-
+- `V1__create_single_tenant_schema.sql`.
+- `V2__add_active_to_category.sql`.
