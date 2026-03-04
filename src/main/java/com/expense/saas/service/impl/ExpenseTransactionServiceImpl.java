@@ -4,6 +4,7 @@ import com.expense.saas.domain.ExpenseTransaction;
 import com.expense.saas.dto.transaction.TransactionAmountUpdateRequest;
 import com.expense.saas.dto.transaction.TransactionCreateRequest;
 import com.expense.saas.dto.transaction.TransactionResponse;
+import com.expense.saas.exception.BusinessException;
 import com.expense.saas.exception.ResourceNotFoundException;
 import com.expense.saas.repository.CategoryRepository;
 import com.expense.saas.repository.ExpenseTransactionRepository;
@@ -14,12 +15,17 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.UUID;
 
 @Service
 @AllArgsConstructor
 public class ExpenseTransactionServiceImpl implements ExpenseTransactionService {
+
+    private static final DateTimeFormatter MONTH_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM");
 
     private final ExpenseTransactionRepository expenseTransactionRepository;
     private final CategoryRepository categoryRepository;
@@ -50,9 +56,14 @@ public class ExpenseTransactionServiceImpl implements ExpenseTransactionService 
 
     @Override
     @Transactional(readOnly = true)
-    public List<TransactionResponse> list() {
+    public List<TransactionResponse> list(String month) {
         var userId = this.authenticatedUserService.requireUserId();
-        return this.expenseTransactionRepository.findAllByCreatedBy_IdOrderByDateDescCreatedAtDesc(userId)
+        var referenceMonth = this.resolveReferenceMonth(month);
+        var startDate = referenceMonth.atDay(1);
+        var endDate = referenceMonth.atEndOfMonth();
+
+        return this.expenseTransactionRepository
+                .findAllByCreatedBy_IdAndDateBetweenOrderByDateDescCreatedAtDesc(userId, startDate, endDate)
                 .stream()
                 .map(TransactionResponse::fromEntity)
                 .toList();
@@ -78,5 +89,17 @@ public class ExpenseTransactionServiceImpl implements ExpenseTransactionService 
         var userId = this.authenticatedUserService.requireUserId();
         return this.expenseTransactionRepository.findByIdAndCreatedBy_Id(transactionId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Transação não encontrada."));
+    }
+
+    private YearMonth resolveReferenceMonth(String month) {
+        if (month == null || month.isBlank()) {
+            return YearMonth.now();
+        }
+
+        try {
+            return YearMonth.parse(month.strip(), MONTH_FORMATTER);
+        } catch (DateTimeParseException exception) {
+            throw new BusinessException("Mês inválido. Use o formato yyyy-MM.");
+        }
     }
 }
