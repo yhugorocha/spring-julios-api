@@ -34,7 +34,8 @@ jobs:
         run: echo "APP_VERSION=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
 
       - name: Show version
-        run: echo "Versão encontrada: $APP_VERSION"
+        run: |
+          echo "Versão encontrada: $APP_VERSION"
 
       - name: Build and push
         uses: docker/build-push-action@v6
