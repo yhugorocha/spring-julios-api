@@ -40,6 +40,10 @@ public class ExpenseTransaction extends BaseEntity {
     @Column(name = "transaction_date", nullable = false)
     private LocalDate date;
 
+    @Builder.Default
+    @Column(name = "paid", nullable = false)
+    private boolean paid = false;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
