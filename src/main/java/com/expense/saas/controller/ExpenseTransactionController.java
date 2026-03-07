@@ -2,6 +2,7 @@ package com.expense.saas.controller;
 
 import com.expense.saas.dto.transaction.TransactionCreateRequest;
 import com.expense.saas.dto.transaction.TransactionAmountUpdateRequest;
+import com.expense.saas.dto.transaction.TransactionPaidUpdateRequest;
 import com.expense.saas.dto.transaction.TransactionResponse;
 import com.expense.saas.service.ExpenseTransactionService;
 import jakarta.validation.Valid;
@@ -36,6 +37,14 @@ public class ExpenseTransactionController {
             @Valid @RequestBody TransactionAmountUpdateRequest request
     ) {
         return ResponseEntity.ok(this.expenseTransactionService.updateAmount(transactionId, request));
+    }
+
+    @PatchMapping("/{transactionId}/paid")
+    public ResponseEntity<TransactionResponse> updatePaid(
+            @PathVariable UUID transactionId,
+            @Valid @RequestBody TransactionPaidUpdateRequest request
+    ) {
+        return ResponseEntity.ok(this.expenseTransactionService.updatePaid(transactionId, request));
     }
 
     @DeleteMapping("/{transactionId}")
