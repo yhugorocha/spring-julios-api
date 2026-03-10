@@ -3,6 +3,7 @@ package com.expense.saas.service.impl;
 import com.expense.saas.domain.ExpenseTransaction;
 import com.expense.saas.dto.transaction.TransactionAmountUpdateRequest;
 import com.expense.saas.dto.transaction.TransactionCreateRequest;
+import com.expense.saas.dto.transaction.TransactionPaidUpdateRequest;
 import com.expense.saas.dto.transaction.TransactionResponse;
 import com.expense.saas.exception.BusinessException;
 import com.expense.saas.exception.ResourceNotFoundException;
@@ -46,6 +47,7 @@ public class ExpenseTransactionServiceImpl implements ExpenseTransactionService 
                 .description(request.description().strip())
                 .amount(request.amount())
                 .date(request.date())
+                .paid(false)
                 .category(category)
                 .createdBy(currentUser)
                 .build();
@@ -74,6 +76,15 @@ public class ExpenseTransactionServiceImpl implements ExpenseTransactionService 
     public TransactionResponse updateAmount(UUID transactionId, TransactionAmountUpdateRequest request) {
         var transaction = this.findOwnedTransaction(transactionId);
         transaction.setAmount(request.amount());
+        this.expenseTransactionRepository.save(transaction);
+        return TransactionResponse.fromEntity(transaction);
+    }
+
+    @Override
+    @Transactional
+    public TransactionResponse updatePaid(UUID transactionId, TransactionPaidUpdateRequest request) {
+        var transaction = this.findOwnedTransaction(transactionId);
+        transaction.setPaid(request.paid());
         this.expenseTransactionRepository.save(transaction);
         return TransactionResponse.fromEntity(transaction);
     }
